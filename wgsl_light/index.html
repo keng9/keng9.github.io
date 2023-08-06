@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="en"><head>
+        <meta charset="utf-8">
+        <title>Bevy game</title> <!-- ToDo -->
+        
+        
+        
+        <link rel="icon" href="icon.ico">
+        <style type="text/css">html {
+    height: 100%;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    height: 100%;
+    overflow: hidden;
+}
+
+.game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    max-width: calc(100vh * 9 / 16);
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+}
+
+.loader {
+    fill: currentColor;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.loader>svg {
+    width: 50px;
+    height: 50px;
+}
+
+.loader>svg .arc {
+    animation-name: spin;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    transform-origin: center;
+}
+
+.loader>svg .arc-1 {
+    animation-duration: 2s;
+}
+
+.loader>svg .arc-2 {
+    animation-duration: 1s;
+}
+
+.loader>svg .arc-3 {
+    animation-duration: 3s;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+.hidden {
+    display: none;
+}
+
+.error-message,
+.error-stack {
+    color: red;
+    font-size: 2rem;
+}
+
+body, .game-container {
+  background-color: black;
+}</style>
+        <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
+// https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
+
+// the following function keeps track of all AudioContexts and resumes them on the first user
+// interaction with the page. If the function is called and all contexts are already running,
+// it will remove itself from all event listeners.
+(function () {
+    // An array of all contexts to resume on the page
+    const audioContextList = [];
+
+    // An array of various user interaction events we should listen for
+    const userInputEventNames = [
+        "click",
+        "contextmenu",
+        "auxclick",
+        "dblclick",
+        "mousedown",
+        "mouseup",
+        "pointerup",
+        "touchend",
+        "keydown",
+        "keyup",
+    ];
+
+    // A proxy object to intercept AudioContexts and
+    // add them to the array for tracking and resuming later
+    self.AudioContext = new Proxy(self.AudioContext, {
+        construct(target, args) {
+            const result = new target(...args);
+            audioContextList.push(result);
+            return result;
+        },
+    });
+
+    // To resume all AudioContexts being tracked
+    function resumeAllContexts(_event) {
+        let count = 0;
+
+        audioContextList.forEach((context) => {
+            if (context.state !== "running") {
+                context.resume();
+            } else {
+                count++;
+            }
+        });
+
+        // If all the AudioContexts have now resumed then we unbind all
+        // the event listeners from the page to prevent unnecessary resume attempts
+        // Checking count > 0 ensures that the user interaction happens AFTER the game started up
+        if (count > 0 && count === audioContextList.length) {
+            userInputEventNames.forEach((eventName) => {
+                document.removeEventListener(eventName, resumeAllContexts);
+            });
+        }
+    }
+
+    // We bind the resume function for each user interaction
+    // event on the page
+    userInputEventNames.forEach((eventName) => {
+        document.addEventListener(eventName, resumeAllContexts);
+    });
+})();
+</script>
+        <script>function wasm_ready_callback() {
+    console.log('Wasm is ready!');
+         const loader = document.querySelector('.loader')
+         if (loader != null) {
+             loader.parentElement?.removeChild(loader)
+         }
+}
+
+
+window.addEventListener('resize', resizeCanvas);
+function resizeCanvas() {
+    const canvas = document.getElementById('bevy');
+    const windowAspectRatio = window.innerWidth / window.innerHeight;
+    const gameAspectRatio = 9 / 16;
+
+}
+resizeCanvas();  // Call the function once to set the initial size</script>
+    
+<link rel="preload" href="/bevy_game-81b04d8878b2e12a_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/bevy_game-81b04d8878b2e12a.js"></head>
+    <body>
+    <div class="loader">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" xml:space="preserve">
+      <path class="arc arc-1" d="M31.6,3.5C5.9,13.6-6.6,42.7,3.5,68.4c10.1,25.7,39.2,38.3,64.9,28.1l-3.1-7.9c-21.3,8.4-45.4-2-53.8-23.3
+       c-8.4-21.3,2-45.4,23.3-53.8L31.6,3.5z">
+      </path>
+            <path class="arc arc-2" d="M42.3,39.6c5.7-4.3,13.9-3.1,18.1,2.7c4.3,5.7,3.1,13.9-2.7,18.1l4.1,5.5c8.8-6.5,10.6-19,4.1-27.7
+       c-6.5-8.8-19-10.6-27.7-4.1L42.3,39.6z">
+      </path>
+            <path class="arc arc-3" d="M82,35.7C74.1,18,53.4,10.1,35.7,18S10.1,46.6,18,64.3l7.6-3.4c-6-13.5,0-29.3,13.5-35.3s29.3,0,35.3,13.5
+       L82,35.7z">
+      </path>
+    </svg>
+
+        <div class="hidden error-message"></div>
+        <div class="hidden error-stack"></div>
+    </div>
+
+        <div class="game-container">
+            <canvas id="bevy">
+                Javascript and support for canvas is required
+            </canvas>
+        </div>
+    
+
+
+
+<script type="module">import init from '/bevy_game-81b04d8878b2e12a.js';init('/bevy_game-81b04d8878b2e12a_bg.wasm');</script></body></html>
